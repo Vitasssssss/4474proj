@@ -1,6 +1,9 @@
 Group 13
+
 Matthew Tennant, Michelle Bourdon, Yize Zhao, Zhichun Zhang, Zhihe Yu
+
 **Application**: Travel Packing List
+
 
 **Overview**
 Travel Packing List is a web based application for users to plan their packing list for a trip. The user is able to name their list, add a destination, and input their planned activities. The application has multiple views for easy planning of clothes for multiple days, activities, and the finalized composite packing list. 
