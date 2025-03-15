@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from "axios";
+import DestinationSelect from './DestinationSelect.tsx';
 
 interface TravelFormProps {
   user?: any;
@@ -45,6 +46,10 @@ function TravelForm({ user }: TravelFormProps) {
     }
   };
 
+  const handleSelectDestination = (formatted: string) => {
+    setFormData({ ...formData, destination: formatted });
+  };
+
   return (
       <div className="max-w-2xl mx-auto">
         <div className="bg-white p-8 rounded-lg shadow-md">
@@ -67,7 +72,7 @@ function TravelForm({ user }: TravelFormProps) {
               <input
                   type="text"
                   id="tripName"
-                  placeholder="Summer Vacation 2025"
+                  placeholder="New Trip"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={formData.tripName}
                   onChange={(e) => setFormData({...formData, tripName: e.target.value})}
@@ -75,19 +80,14 @@ function TravelForm({ user }: TravelFormProps) {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
+              <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="destination">
                   Destination
                 </label>
-                <input
-                    type="text"
-                    id="destination"
-                    placeholder="Paris, France"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={formData.destination}
-                    onChange={(e) => setFormData({...formData, destination: e.target.value})}
-                />
+                <DestinationSelect onSelectDestination={handleSelectDestination} />
               </div>
+
+
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="climate">
                   Climate
