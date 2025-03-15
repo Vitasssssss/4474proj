@@ -1,9 +1,8 @@
 Group 13
 
-Matthew Tennant, Michelle Bourdon, Yize Zhao, Zhichun Zhang, Zhihe Yu
+Matthew Tennant, Yize Zhao, Zhichun Zhang, Zhihe Yu
 
 **Application**: Travel Packing List
-
 
 **Overview**
 Travel Packing List is a web based application for users to plan their packing list for a trip. The user is able to name their list, add a destination, and input their planned activities. The application has multiple views for easy planning of clothes for multiple days, activities, and the finalized composite packing list. 
@@ -19,7 +18,6 @@ Key Improvements from Packtor:
 Too many suggestions: The application offers so many suggestions for items to pack that the user is scrolling down a long time before having the opportunity to enter items themselves. 
   Site Organization: The application has multiple lists where the user scrolls for a long time and checks off (or manually adds) random individual items that they want to add to their list. There is no day-to-day view, ability to enter clothes for specific days, or ability to see what was already added to the list. We want to create a calendar-like view, where the user can enter their item into the slot they aim to use it, so that they can visualize the length of their trip, activities, and what they already packed while adding more items to the list. 
 Default settings: The website didn’t allow customized default lists; our redesign would introduce personalized defaults you can save, edit, and access instantly, streamlining packing for every adventure. 
-
 
 **Our Design - Key Features**
 Name Your Packing List: Easily create and label packing lists for different trips.
