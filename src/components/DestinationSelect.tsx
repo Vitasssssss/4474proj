@@ -1,60 +1,69 @@
-import React, { useEffect, useState } from "react";
-import Select, { SingleValue } from "react-select";
+import React from 'react';
+import Select from 'react-select';
+import citiesData from '../data/cities.json';
 
-interface CityData {
-    city: string;
-    country: string;
-}
-
-// 选项的类型：react-select 接收 { value: string; label: string; } 这样的格式
-interface OptionType {
-    value: string;
-    label: string;
+interface City {
+  id: number;
+  name: string;
+  country: string;
+  lat: string;
+  lng: string;
 }
 
 interface DestinationSelectProps {
-    onSelectDestination: (formatted: string) => void;
+  value: { label: string; value: string } | null;
+  onChange: (option: { label: string; value: string } | null) => void;
 }
 
-function DestinationSelect({ onSelectDestination }: DestinationSelectProps) {
-    const [options, setOptions] = useState<OptionType[]>([]);
-    const [selectedOption, setSelectedOption] = useState<OptionType | null>(null);
+const DestinationSelect: React.FC<DestinationSelectProps> = ({ value, onChange }) => {
+  // Format cities for react-select
+  const cities = citiesData.map((city: City) => ({
+    value: `${city.id}`,
+    label: `${city.name}, ${city.country}`,
+  }));
 
-    // 1. 加载本地 city+country 数据，并转换成 react-select 的格式
-    useEffect(() => {
-        fetch("cities.json")
-            .then((res) => res.json())
-            .then((data: CityData[]) => {
-                const ops = data.map((item) => ({
-                    value: `${item.city}, ${item.country}`,
-                    label: `${item.city}, ${item.country}`
-                }));
-                setOptions(ops);
-            })
-            .catch((err) => console.error("Error fetching city data:", err));
-    }, []);
-
-    // 2. 当用户在下拉中选择某个值时
-    const handleChange = (option: SingleValue<OptionType>) => {
-        if (option) {
-            setSelectedOption(option);
-            // 将 "City, Country" 回调给父组件
-            onSelectDestination(option.value);
-        } else {
-            setSelectedOption(null);
-            onSelectDestination("");
-        }
-    };
-
-    return (
-        <Select
-            options={options}           // 下拉选项
-            value={selectedOption}      // 当前选择
-            onChange={handleChange}     // 用户选择回调
-            placeholder="Select city..."
-            isClearable={true}          // 可选：允许清空
-        />
-    );
-}
+  return (
+    <Select
+      value={value}
+      onChange={onChange}
+      options={cities}
+      placeholder="Search for a city..."
+      isClearable
+      className="react-select-container"
+      classNamePrefix="react-select"
+      styles={{
+        control: (styles) => ({
+          ...styles,
+          borderColor: '#d1d5db',
+          '&:hover': {
+            borderColor: '#9ca3af',
+          },
+          boxShadow: 'none',
+          borderRadius: '0.375rem',
+          padding: '0.25rem',
+          minHeight: '42px',
+        }),
+        option: (styles, { isFocused, isSelected }) => ({
+          ...styles,
+          backgroundColor: isSelected
+            ? '#3b82f6'
+            : isFocused
+            ? '#dbeafe'
+            : undefined,
+          color: isSelected ? 'white' : '#374151',
+        }),
+        input: (styles) => ({
+          ...styles,
+          color: '#374151',
+        }),
+        singleValue: (styles) => ({
+          ...styles,
+          color: '#374151',
+        }),
+      }}
+      noOptionsMessage={() => "No cities found"}
+    />
+  );
+};
 
 export default DestinationSelect;

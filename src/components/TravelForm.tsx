@@ -1,192 +1,231 @@
 import React, { useState } from 'react';
-import axios from "axios";
-import DestinationSelect from './DestinationSelect.tsx';
+import { motion } from 'framer-motion';
+import { Plus, AlertCircle } from 'lucide-react';
+import PackingList from './PackingList';
+import DestinationSelect from './DestinationSelect';
 
 interface TravelFormProps {
-  user?: any;
+  user: any;
 }
 
 function TravelForm({ user }: TravelFormProps) {
-  const [formData, setFormData] = useState({
-    tripName: '',
-    destination: '',
-    climate: 'Moderate',
-    startDate: '',
-    endDate: '',
-    women: 0,
-    men: 0,
-    children: 0,
-    climate_data: '',
-    packing_list: ''
-  });
-  const [success, setSuccess] = useState('');
-  const [error, setError] = useState('');
+  const [showPackingList, setShowPackingList] = useState(false);
+  const [tripName, setTripName] = useState('');
+  const [destination, setDestination] = useState<{ label: string; value: string } | null>(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [errors, setErrors] = useState<{
+    tripName?: string;
+    destination?: string;
+    startDate?: string;
+    endDate?: string;
+  }>({});
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccess('');
-    setError('');
-    if (!user) return;
-    try {
-      // Existing axios call in handleSubmit remains correct:
-      await axios.post('/api/create-packing-list', {
-        username: user.id,
-        trip_name: formData.tripName,
-        destination: formData.destination,
-        start_date: formData.startDate,
-        end_date: formData.endDate,
-        women: formData.women,
-        men: formData.men,
-        children: formData.children,
-        climate_data: formData.climate  // ensure this matches backend expectations
-      });
-    } catch (err) {
-      console.error('Failed to create packing list:', err);
-      setError('Failed to generate packing list. Please try again.');
+  // Page animation config
+  const pageVariants = {
+    initial: {
+      opacity: 0,
+      y: 20,
+    },
+    in: {
+      opacity: 1,
+      y: 0,
+    },
+    exit: {
+      opacity: 0,
+      y: -20,
     }
   };
 
-  const handleSelectDestination = (formatted: string) => {
-    setFormData({ ...formData, destination: formatted });
+  const pageTransition = {
+    type: 'tween',
+    ease: 'anticipate',
+    duration: 0.5
   };
 
+  // Get today's date in YYYY-MM-DD format
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Validate form inputs
+  const validateForm = () => {
+    const newErrors: {
+      tripName?: string;
+      destination?: string;
+      startDate?: string;
+      endDate?: string;
+    } = {};
+    
+    // Validate trip name
+    if (!tripName.trim()) {
+      newErrors.tripName = 'Trip name is required';
+    }
+    
+    // Validate destination
+    if (!destination) {
+      newErrors.destination = 'Destination is required';
+    }
+    
+    // Validate start date
+    if (!startDate) {
+      newErrors.startDate = 'Start date is required';
+    } else {
+      const today = getTodayDate();
+      if (startDate < today) {
+        newErrors.startDate = 'Start date cannot be earlier than today';
+      }
+    }
+    
+    // Validate end date
+    if (!endDate) {
+      newErrors.endDate = 'End date is required';
+    } else if (startDate && endDate < startDate) {
+      newErrors.endDate = 'End date cannot be earlier than start date';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCreatePackingList = () => {
+    if (validateForm()) {
+      setShowPackingList(true);
+    }
+  };
+
+  if (showPackingList && destination) {
+    return (
+      <motion.div
+        initial="initial"
+        animate="in"
+        exit="exit"
+        variants={pageVariants}
+        transition={pageTransition}
+      >
+        <PackingList 
+          onBack={() => setShowPackingList(false)} 
+          userId={user?.id}
+          tripInfo={{
+            tripName,
+            destination,
+            startDate,
+            endDate
+          }}
+        />
+      </motion.div>
+    );
+  }
+
   return (
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white p-8 rounded-lg shadow-md">
-          <h2 className="text-2xl font-bold mb-6 text-center">Plan Your Trip</h2>
-          {success && (
-              <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                {success}
-              </div>
-          )}
-          {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
-          )}
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tripName">
-                Trip Name
+    <motion.div
+      initial="initial"
+      animate="in"
+      exit="exit"
+      variants={pageVariants}
+      transition={pageTransition}
+      className="max-w-4xl mx-auto"
+    >
+      <div className="bg-white p-8 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-6">Travel Planning</h2>
+        
+        {!user && (
+          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
+            <p className="font-medium">Tip: Sign in to save your packing lists</p>
+          </div>
+        )}
+        
+        <div className="space-y-6">
+          {/* Trip Name Field */}
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Trip Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className={`w-full px-3 py-2 border ${errors.tripName ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              value={tripName}
+              onChange={(e) => setTripName(e.target.value)}
+              placeholder="e.g. Summer Vacation 2023"
+            />
+            {errors.tripName && (
+              <p className="mt-1 text-red-500 text-sm flex items-center">
+                <AlertCircle size={16} className="mr-1" />
+                {errors.tripName}
+              </p>
+            )}
+          </div>
+          
+          {/* Destination Field */}
+          <div>
+            <label className="block text-gray-700 text-sm font-bold mb-2">
+              Destination <span className="text-red-500">*</span>
+            </label>
+            <DestinationSelect 
+              value={destination}
+              onChange={(option) => setDestination(option)}
+            />
+            {errors.destination && (
+              <p className="mt-1 text-red-500 text-sm flex items-center">
+                <AlertCircle size={16} className="mr-1" />
+                {errors.destination}
+              </p>
+            )}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Start Date Field */}
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                Start Date <span className="text-red-500">*</span>
               </label>
               <input
-                  type="text"
-                  id="tripName"
-                  placeholder="New Trip"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  value={formData.tripName}
-                  onChange={(e) => setFormData({...formData, tripName: e.target.value})}
+                type="date"
+                className={`w-full px-3 py-2 border ${errors.startDate ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                min={getTodayDate()}
               />
+              {errors.startDate && (
+                <p className="mt-1 text-red-500 text-sm flex items-center">
+                  <AlertCircle size={16} className="mr-1" />
+                  {errors.startDate}
+                </p>
+              )}
             </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="mb-4">
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="destination">
-                  Destination
-                </label>
-                <DestinationSelect onSelectDestination={handleSelectDestination} />
-              </div>
-
-
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="climate">
-                  Climate
-                </label>
-                <select
-                    id="climate"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={formData.climate}
-                    onChange={(e) => setFormData({...formData, climate: e.target.value})}
-                >
-                  <option value="Cold">Cold</option>
-                  <option value="Moderate">Moderate</option>
-                  <option value="Hot">Hot</option>
-                  <option value="Tropical">Tropical</option>
-                </select>
-              </div>
+            
+            {/* End Date Field */}
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                End Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                className={`w-full px-3 py-2 border ${errors.endDate ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate || getTodayDate()}
+              />
+              {errors.endDate && (
+                <p className="mt-1 text-red-500 text-sm flex items-center">
+                  <AlertCircle size={16} className="mr-1" />
+                  {errors.endDate}
+                </p>
+              )}
             </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="startDate">
-                  Start Date
-                </label>
-                <input
-                    type="date"
-                    id="startDate"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={formData.startDate}
-                    onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                />
-              </div>
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="endDate">
-                  End Date
-                </label>
-                <input
-                    type="date"
-                    id="endDate"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={formData.endDate}
-                    onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                />
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <label className="block text-gray-700 text-sm font-bold mb-2">Travelers</label>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-gray-700 text-sm mb-1" htmlFor="women">
-                    Women
-                  </label>
-                  <input
-                      type="number"
-                      id="women"
-                      min="0"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={formData.women}
-                      onChange={(e) => setFormData({...formData, women: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm mb-1" htmlFor="men">
-                    Men
-                  </label>
-                  <input
-                      type="number"
-                      id="men"
-                      min="0"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={formData.men}
-                      onChange={(e) => setFormData({...formData, men: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-gray-700 text-sm mb-1" htmlFor="children">
-                    Children
-                  </label>
-                  <input
-                      type="number"
-                      id="children"
-                      min="0"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      value={formData.children}
-                      onChange={(e) => setFormData({...formData, children: parseInt(e.target.value) || 0})}
-                  />
-                </div>
-              </div>
-            </div>
-
-            <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Create Packing List
-            </button>
-          </form>
+          </div>
+          
+          <button
+            onClick={handleCreatePackingList}
+            className="w-full flex items-center justify-center bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="mr-2" size={20} />
+            Create Packing List
+          </button>
         </div>
       </div>
+    </motion.div>
   );
 }
 
