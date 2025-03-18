@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Plus, X, Calendar, Grid, AlertCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, X, Calendar, Grid, AlertCircle, Clock, Save } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 // Define item type
 interface Item {
@@ -17,8 +18,8 @@ interface Activity {
   id: string;
   name: string;
   date: string;
-  startTime?: string; // 添加开始时间
-  endTime?: string;   // 添加结束时间
+  startTime?: string; // Add start time
+  endTime?: string;   // Add end time
 }
 
 interface TripInfo {
@@ -46,7 +47,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
     quantity: 1
   });
   
-  // 修改活动状态，添加时间字段
+  // Modify activity state, add time fields
   const [newActivity, setNewActivity] = useState<Omit<Activity, 'id'>>({
     name: '',
     date: '',
@@ -54,11 +55,11 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
     endTime: ''
   });
   
-  // 添加活动表单显示状态
+  // Activity form display state
   const [showAddActivityForm, setShowAddActivityForm] = useState<string | null>(null);
   const [validationError, setValidationError] = useState('');
   
-  // 为每个区域创建专门的添加项目状态
+  // Create dedicated add item state for each area
   const [showAddItemForm, setShowAddItemForm] = useState<{
     type: 'unassigned' | 'date' | 'activity';
     id?: string;
@@ -93,7 +94,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
     
     setItems([...items, item]);
     setNewItem({ name: '', category: '', quantity: 1 });
-    setShowAddItemForm(null); // 关闭添加表单
+    setShowAddItemForm(null); // Close add form
   };
 
   // Add new activity
@@ -156,18 +157,18 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
 
   // Get items and activities for a specific date
   const getItemsAndActivitiesByDate = (date: string) => {
-    // 获取指定日期的活动，并按时间排序
+    // Get activities for the specified date, sorted by time
     const dateActivities = activities
       .filter(activity => activity.date === date)
       .sort((a, b) => {
-        // 有时间的排在前面
+        // Activities with time come first
         if (a.startTime && !b.startTime) return -1;
         if (!a.startTime && b.startTime) return 1;
-        // 如果都有时间，按开始时间排序
+        // If both have times, sort by start time
         if (a.startTime && b.startTime) {
           return a.startTime.localeCompare(b.startTime);
         }
-        // 都没有时间就保持原顺序
+        // If neither has time, maintain original order
         return 0;
       });
       
@@ -192,7 +193,189 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
     }
   }, [tripInfo]);
 
-  // 添加项目表单
+  // Save to PDF function
+  const saveToPDF = (viewType: 'date' | 'category') => {
+    const doc = new jsPDF();
+    const lineHeight = 10;
+    let yPosition = 20;
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.text(`Packing List - ${tripInfo?.tripName || 'Trip'}`, 20, yPosition);
+    yPosition += lineHeight * 2;
+    
+    // Add trip info
+    if (tripInfo) {
+      doc.setFontSize(12);
+      doc.text(`Destination: ${tripInfo.destination.label}`, 20, yPosition);
+      yPosition += lineHeight;
+      doc.text(`Dates: ${tripInfo.startDate} to ${tripInfo.endDate}`, 20, yPosition);
+      yPosition += lineHeight * 2;
+    }
+    
+    doc.setFontSize(14);
+    
+    if (viewType === 'date') {
+      // Calendar view PDF
+      // First, add unassigned items
+      doc.setFont('helvetica', 'bold');
+      doc.text('Unassigned Items:', 20, yPosition);
+      doc.setFont('helvetica', 'normal');
+      yPosition += lineHeight;
+      
+      const unassignedItems = getUnassignedItems();
+      if (unassignedItems.length > 0) {
+        unassignedItems.forEach(item => {
+          doc.text(`• ${item.name} (${item.quantity}) - ${item.category}`, 25, yPosition);
+          yPosition += lineHeight;
+          
+          // Add page if needed
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        });
+      } else {
+        doc.text('No unassigned items', 25, yPosition);
+        yPosition += lineHeight;
+      }
+      
+      yPosition += lineHeight;
+      
+      // Add items by date
+      dates.forEach(date => {
+        const { dateActivities, dateItemsNoActivity } = getItemsAndActivitiesByDate(date);
+        
+        // Add page if needed
+        if (yPosition > 250) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Date: ${date}`, 20, yPosition);
+        doc.setFont('helvetica', 'normal');
+        yPosition += lineHeight;
+        
+        // Activities and their items
+        if (dateActivities.length > 0) {
+          dateActivities.forEach(activity => {
+            const activityItems = items.filter(item => item.activityId === activity.id);
+            
+            // Add page if needed
+            if (yPosition > 260) {
+              doc.addPage();
+              yPosition = 20;
+            }
+            
+            doc.setFont('helvetica', 'bold');
+            let activityText = `  Activity: ${activity.name}`;
+            if (activity.startTime) {
+              activityText += ` (${activity.startTime}${activity.endTime ? ` - ${activity.endTime}` : ''})`;
+            }
+            doc.text(activityText, 20, yPosition);
+            doc.setFont('helvetica', 'normal');
+            yPosition += lineHeight;
+            
+            if (activityItems.length > 0) {
+              activityItems.forEach(item => {
+                doc.text(`    • ${item.name} (${item.quantity}) - ${item.category}`, 25, yPosition);
+                yPosition += lineHeight;
+                
+                // Add page if needed
+                if (yPosition > 270) {
+                  doc.addPage();
+                  yPosition = 20;
+                }
+              });
+            } else {
+              doc.text('    No items for this activity', 25, yPosition);
+              yPosition += lineHeight;
+            }
+          });
+        }
+        
+        // Items not assigned to activities
+        if (dateItemsNoActivity.length > 0) {
+          // Add page if needed
+          if (yPosition > 260) {
+            doc.addPage();
+            yPosition = 20;
+          }
+          
+          doc.setFont('helvetica', 'bold');
+          doc.text('  Other Items:', 20, yPosition);
+          doc.setFont('helvetica', 'normal');
+          yPosition += lineHeight;
+          
+          dateItemsNoActivity.forEach(item => {
+            doc.text(`    • ${item.name} (${item.quantity}) - ${item.category}`, 25, yPosition);
+            yPosition += lineHeight;
+            
+            // Add page if needed
+            if (yPosition > 270) {
+              doc.addPage();
+              yPosition = 20;
+            }
+          });
+        }
+        
+        yPosition += lineHeight;
+      });
+    } else {
+      // Category view PDF
+      const itemsByCategory = getItemsByCategory();
+      
+      Object.entries(itemsByCategory).forEach(([category, categoryItems]) => {
+        // Add page if needed
+        if (yPosition > 260) {
+          doc.addPage();
+          yPosition = 20;
+        }
+        
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Category: ${category || 'Uncategorized'}`, 20, yPosition);
+        doc.setFont('helvetica', 'normal');
+        yPosition += lineHeight;
+        
+        categoryItems.forEach(item => {
+          let itemText = `• ${item.name} (${item.quantity})`;
+          
+          // Add date and activity info if available
+          if (item.date) {
+            itemText += ` - Date: ${item.date}`;
+          }
+          
+          if (item.activityId) {
+            const activity = activities.find(a => a.id === item.activityId);
+            if (activity) {
+              itemText += ` - Activity: ${activity.name}`;
+            }
+          }
+          
+          doc.text(itemText, 25, yPosition);
+          yPosition += lineHeight;
+          
+          // Add page if needed
+          if (yPosition > 270) {
+            doc.addPage();
+            yPosition = 20;
+          }
+        });
+        
+        yPosition += lineHeight;
+      });
+    }
+    
+    // Generate filename with date
+    const today = new Date().toISOString().split('T')[0];
+    const filename = `packing-list-${tripInfo?.tripName || 'trip'}-${today}.pdf`;
+    
+    // Save the PDF
+    doc.save(filename);
+  };
+
+  // Add item form
   const renderAddItemForm = (type: 'unassigned' | 'date' | 'activity', id?: string) => (
     <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
       <div className="flex justify-between items-center mb-3">
@@ -254,7 +437,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
     </div>
   );
 
-  // 添加活动表单
+  // Add activity form
   const renderAddActivityForm = (date: string) => (
     <div className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
       <div className="flex justify-between items-center mb-3">
@@ -453,7 +636,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
               {/* Items without activities */}
               <div className="mb-4 p-3 rounded-lg border border-dashed border-gray-300">
                 <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-md font-medium">Items Not Assigned to Activities</h4>
+                  <h4 className="text-md font-medium">Other Items</h4>
                   <button
                     onClick={() => setShowAddItemForm({ type: 'date', id: date })}
                     className="bg-blue-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-blue-700"
@@ -487,6 +670,18 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
     
     return (
       <div>
+        <div className="flex justify-end items-center mb-4">
+          <button
+            onClick={() => setShowAddItemForm({ type: 'unassigned' })}
+            className="bg-blue-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-blue-700"
+          >
+            <Plus size={20} className="mr-1" />
+            Add Item
+          </button>
+        </div>
+        
+        {showAddItemForm && showAddItemForm.type === 'unassigned' && renderAddItemForm('unassigned')}
+
         {Object.entries(itemsByCategory).map(([category, categoryItems]) => (
           <div key={category} className="mb-6 bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="bg-gray-100 p-4 border-b border-gray-200">
@@ -597,7 +792,27 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
           </div>
         )}
         
-        <h2 className="text-2xl font-bold mb-6">Packing List</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Packing List</h2>
+          {viewMode === 'date' ? (
+            <button
+              onClick={() => saveToPDF('date')}
+              className="flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+            >
+              <Save size={18} className="mr-2" />
+              Save Date View
+            </button>
+          ) : (
+            <button
+              onClick={() => saveToPDF('category')}
+              className="flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+            >
+              <Save size={18} className="mr-2" />
+              Save List View
+            </button>
+          )}
+        </div>
+        
         {viewMode === 'date' ? renderDateView() : renderCategoryView()}
       </div>
     </div>
