@@ -144,7 +144,7 @@ function TravelForm({ user }: TravelFormProps) {
         
         {!user && (
           <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 text-sm">
-            <p className="font-medium">Tip: Sign in to save your packing lists</p>
+            <p className="font-medium">Tip: Sign in to view saved packing lists</p>
           </div>
         )}
         
