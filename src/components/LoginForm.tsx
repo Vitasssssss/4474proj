@@ -60,16 +60,16 @@ function LoginForm({ onLogin, onBack }: LoginFormProps) {
 
   return (
       <div className="max-w-md mx-auto">
-        {/* 返回主菜单按钮 */}
-        <button
-            onClick={onBack}
-            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="mr-2" size={20} />
-          Back to Main Menu
-        </button>
-
         <div className="bg-white p-8 rounded-lg shadow-md">
+          {/* 返回主菜单按钮 */}
+          <button
+              onClick={onBack}
+              className="mb-8 flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2" size={20} />
+            Back to Main Menu
+          </button>
+          
           <h2 className="text-2xl font-bold mb-6 text-center">
             {isRecovering ? 'Password Recovery' : 'Sign In'}
           </h2>
@@ -130,7 +130,7 @@ function LoginForm({ onLogin, onBack }: LoginFormProps) {
                       }
                       required
                   />
-                  {/* 在密码框下方右侧显示“显示/隐藏密码”文字按钮 */}
+                  {/* 在密码框下方右侧显示"显示/隐藏密码"文字按钮 */}
                   <div className="mt-1 text-right">
                     <button
                         type="button"

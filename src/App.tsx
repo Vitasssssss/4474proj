@@ -117,9 +117,11 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={pageTransition}
-              className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
+              className="centered-container"
             >
-              <LoginForm onLogin={handleLogin} onBack={() => handleViewChange('main')} />
+              <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full mt-8">
+                <LoginForm onLogin={handleLogin} onBack={() => handleViewChange('main')} />
+              </div>
             </motion.div>
           )}
           {currentView === 'signup' && (
@@ -130,9 +132,11 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={pageTransition}
-              className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
+              className="centered-container"
             >
-              <SignupForm onSignup={() => handleViewChange('login')} onBack={() => handleViewChange('main')} />
+              <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full mt-8">
+                <SignupForm onSignup={() => handleViewChange('login')} onBack={() => handleViewChange('main')} />
+              </div>
             </motion.div>
           )}
           {currentView === 'profile' && (
@@ -143,9 +147,11 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={pageTransition}
-              className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
+              className="centered-container"
             >
-              <Profile user={user} onLogout={handleLogout} onBack={() => handleViewChange('main')} />
+              <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full mt-8">
+                <Profile user={user} onLogout={handleLogout} onBack={() => handleViewChange('main')} />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

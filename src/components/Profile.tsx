@@ -74,14 +74,15 @@ function Profile({ user, onLogout, onBack }: ProfileProps) {
 
   return (
       <div className="max-w-md mx-auto">
-        <button
-            onClick={onBack}
-            className="mb-4 flex items-center text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="mr-2" size={20} />
-          Back to Main Menu
-        </button>
         <div className="bg-white p-8 rounded-lg shadow-md">
+          <button
+              onClick={onBack}
+              className="mb-8 flex items-center text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2" size={20} />
+            Back to Main Menu
+          </button>
+          
           <h2 className="text-2xl font-bold mb-6 text-center">Profile Settings</h2>
           {error && (
               <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
