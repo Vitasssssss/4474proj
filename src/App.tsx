@@ -5,6 +5,7 @@ import LoginForm from './components/LoginForm';
 import SignupForm from './components/SignupForm';
 import TravelForm from './components/TravelForm';
 import Profile from './components/Profile';
+import './styles/AnimatedBackground.css';
 
 // Define page transition animations
 const pageVariants = {
@@ -51,8 +52,14 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
+    <div className="min-h-screen">
+      {/* 动态背景层 */}
+      <div className="bg"></div>
+      <div className="bg bg2"></div>
+      <div className="bg bg3"></div>
+      
+      {/* 导航栏 - 保持在背景上方 */}
+      <nav className="bg-white shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <h1 className="text-2xl font-bold text-gray-900">Travel Packing List</h1>
@@ -61,7 +68,7 @@ function App() {
                 <>
                   <button
                     onClick={() => handleViewChange('login')}
-                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                    className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium border border-black"
                   >
                     Sign In
                   </button>
@@ -85,7 +92,7 @@ function App() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="w-full relative z-1">
         <AnimatePresence mode="wait">
           {currentView === 'main' && (
             <motion.div
@@ -95,8 +102,11 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={pageTransition}
+              className="centered-container"
             >
-              <TravelForm user={user} />
+              <div className="max-w-sm w-full">
+                <TravelForm user={user} />
+              </div>
             </motion.div>
           )}
           {currentView === 'login' && (
@@ -107,6 +117,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={pageTransition}
+              className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
             >
               <LoginForm onLogin={handleLogin} onBack={() => handleViewChange('main')} />
             </motion.div>
@@ -119,6 +130,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={pageTransition}
+              className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
             >
               <SignupForm onSignup={() => handleViewChange('login')} onBack={() => handleViewChange('main')} />
             </motion.div>
@@ -131,6 +143,7 @@ function App() {
               exit="exit"
               variants={pageVariants}
               transition={pageTransition}
+              className="bg-white p-8 rounded-lg shadow-md max-w-md mx-auto"
             >
               <Profile user={user} onLogout={handleLogout} onBack={() => handleViewChange('main')} />
             </motion.div>

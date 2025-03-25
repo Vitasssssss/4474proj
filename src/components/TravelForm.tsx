@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import { Plus, AlertCircle } from 'lucide-react';
 import PackingList from './PackingList';
 import DestinationSelect from './DestinationSelect';
@@ -20,6 +20,17 @@ function TravelForm({ user }: TravelFormProps) {
     startDate?: string;
     endDate?: string;
   }>({});
+  
+  // 为表单控制动画
+  const formAnimation = useAnimation();
+
+  // 震动动画变体
+  const shakeVariants = {
+    shake: {
+      x: [0, -10, 10, -10, 10, -5, 5, -2, 2, 0],
+      transition: { duration: 0.6 }
+    }
+  };
 
   // Page animation config
   const pageVariants = {
@@ -92,18 +103,16 @@ function TravelForm({ user }: TravelFormProps) {
   const handleCreatePackingList = () => {
     if (validateForm()) {
       setShowPackingList(true);
+    } else {
+      // 如果验证失败，触发震动动画
+      formAnimation.start('shake');
     }
   };
 
   if (showPackingList && destination) {
+    // 直接返回PackingList，不包含在任何限制宽度的容器中
     return (
-      <motion.div
-        initial="initial"
-        animate="in"
-        exit="exit"
-        variants={pageVariants}
-        transition={pageTransition}
-      >
+      <div className="fixed top-0 left-0 w-screen h-screen flex justify-center" style={{ paddingTop: '70px' }}>
         <PackingList 
           onBack={() => setShowPackingList(false)} 
           userId={user?.id}
@@ -114,7 +123,7 @@ function TravelForm({ user }: TravelFormProps) {
             endDate
           }}
         />
-      </motion.div>
+      </div>
     );
   }
 
@@ -125,21 +134,24 @@ function TravelForm({ user }: TravelFormProps) {
       exit="exit"
       variants={pageVariants}
       transition={pageTransition}
-      className="max-w-4xl mx-auto"
     >
-      <div className="bg-white p-8 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-6">Travel Planning</h2>
+      <motion.div 
+        className="bg-white p-6 rounded-lg shadow-md"
+        animate={formAnimation}
+        variants={shakeVariants}
+      >
+        <h2 className="text-xl font-bold mb-4 text-center">Travel Planning</h2>
         
         {!user && (
-          <div className="mb-6 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
+          <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 text-sm">
             <p className="font-medium">Tip: Sign in to save your packing lists</p>
           </div>
         )}
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Trip Name Field */}
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
               Trip Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -159,7 +171,7 @@ function TravelForm({ user }: TravelFormProps) {
           
           {/* Destination Field */}
           <div>
-            <label className="block text-gray-700 text-sm font-bold mb-2">
+            <label className="block text-gray-700 text-sm font-bold mb-1">
               Destination <span className="text-red-500">*</span>
             </label>
             <DestinationSelect 
@@ -174,10 +186,10 @@ function TravelForm({ user }: TravelFormProps) {
             )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Start Date Field */}
             <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
+              <label className="block text-gray-700 text-sm font-bold mb-1">
                 Start Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -197,7 +209,7 @@ function TravelForm({ user }: TravelFormProps) {
             
             {/* End Date Field */}
             <div>
-              <label className="block text-gray-700 text-sm font-bold mb-2">
+              <label className="block text-gray-700 text-sm font-bold mb-1">
                 End Date <span className="text-red-500">*</span>
               </label>
               <input
@@ -218,13 +230,13 @@ function TravelForm({ user }: TravelFormProps) {
           
           <button
             onClick={handleCreatePackingList}
-            className="w-full flex items-center justify-center bg-blue-600 text-white p-3 rounded-md hover:bg-blue-700 transition-colors"
+            className="w-full flex items-center justify-center bg-blue-600 text-white p-2.5 rounded-md hover:bg-blue-700 transition-colors mt-2"
           >
-            <Plus className="mr-2" size={20} />
+            <Plus className="mr-2" size={18} />
             Create Packing List
           </button>
         </div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

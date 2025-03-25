@@ -526,7 +526,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
       </div>
       <button
         onClick={() => handleDeleteItem(item.id)}
-        className="ml-2 text-red-500 hover:text-red-700"
+        className="ml-2 text-white bg-red-600 hover:bg-red-800 p-1 rounded-md"
       >
         <X size={18} />
       </button>
@@ -542,7 +542,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
           <h3 className="text-lg font-medium">Unassigned Items</h3>
           <button
             onClick={() => setShowAddItemForm({ type: 'unassigned' })}
-            className="bg-blue-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-blue-700"
+            className="bg-indigo-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-indigo-800"
           >
             <Plus size={20} className="mr-1" />
             Add Item
@@ -571,7 +571,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
               <h3 className="text-lg font-medium">{date}</h3>
               <button
                 onClick={() => setShowAddActivityForm(date)}
-                className="bg-green-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-green-700"
+                className="bg-purple-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-purple-800"
               >
                 <Plus size={18} className="mr-1" />
                 Add Activity
@@ -602,14 +602,14 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
                         <div className="flex items-center">
                           <button
                             onClick={() => setShowAddItemForm({ type: 'activity', id: activity.id })}
-                            className="bg-blue-600 text-white flex items-center mr-2 px-3 py-1 rounded-md hover:bg-blue-700"
+                            className="bg-teal-600 text-white flex items-center mr-2 px-3 py-1 rounded-md hover:bg-teal-800"
                           >
                             <Plus size={18} className="mr-1" />
                             Add Item
                           </button>
                           <button
                             onClick={() => handleDeleteActivity(activity.id)}
-                            className="text-red-500 hover:text-red-700"
+                            className="text-white bg-red-600 hover:bg-red-800 p-1 rounded-md"
                           >
                             <X size={18} />
                           </button>
@@ -639,7 +639,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
                   <h4 className="text-md font-medium">Other Items</h4>
                   <button
                     onClick={() => setShowAddItemForm({ type: 'date', id: date })}
-                    className="bg-blue-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-blue-700"
+                    className="bg-amber-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-amber-800"
                   >
                     <Plus size={18} className="mr-1" />
                     Add Item
@@ -673,7 +673,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
         <div className="flex justify-end items-center mb-4">
           <button
             onClick={() => setShowAddItemForm({ type: 'unassigned' })}
-            className="bg-blue-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-blue-700"
+            className="bg-indigo-600 text-white flex items-center px-3 py-1 rounded-md hover:bg-indigo-800"
           >
             <Plus size={20} className="mr-1" />
             Add Item
@@ -737,11 +737,11 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
   };
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div style={{ width: '75vw', maxWidth: '1100px' }} className="mx-auto">
       <div className="mb-6 flex justify-between items-center">
         <button
           onClick={onBack}
-          className="flex items-center text-gray-600 hover:text-gray-900"
+          className="flex items-center text-white bg-slate-700 hover:bg-slate-800 px-4 py-2 rounded-md"
         >
           <ArrowLeft className="mr-2" size={20} />
           Back
@@ -752,7 +752,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
             onClick={() => setViewMode('date')}
             className={`flex items-center px-4 py-2 rounded-md ${
               viewMode === 'date'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-700 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -763,7 +763,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
             onClick={() => setViewMode('category')}
             className={`flex items-center px-4 py-2 rounded-md ${
               viewMode === 'category'
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-700 text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}
           >
@@ -797,7 +797,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
           {viewMode === 'date' ? (
             <button
               onClick={() => saveToPDF('date')}
-              className="flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+              className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-800"
             >
               <Save size={18} className="mr-2" />
               Save Date View
@@ -805,7 +805,7 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
           ) : (
             <button
               onClick={() => saveToPDF('category')}
-              className="flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700"
+              className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-800"
             >
               <Save size={18} className="mr-2" />
               Save List View
