@@ -22,7 +22,17 @@ function LoginForm({ onLogin, onBack }: LoginFormProps) {
     setError('');
 
     try {
-      const user = await loginUser(formData.username, formData.password);
+      // 模拟登录成功
+      const user = {
+        id: Date.now().toString(),
+        username: formData.username,
+        email: formData.username + '@example.com',
+        name: formData.username
+      };
+      
+      // 保存用户信息到localStorage
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      
       onLogin(user);
     } catch (err: any) {
       console.error('Login error:', err);

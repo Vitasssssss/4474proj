@@ -33,13 +33,17 @@ interface PackingListProps {
   onBack: () => void;
   userId?: string;
   tripInfo?: TripInfo;
+  initialItems?: Item[];
+  initialActivities?: Activity[];
+  planId?: string; // Add planId for editing existing plans
+  onSaveSuccess?: () => void; // Add callback for successful save
 }
 
-function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
+function PackingList({ onBack, userId, tripInfo, initialItems, initialActivities, planId, onSaveSuccess }: PackingListProps) {
   // State management
   const [viewMode, setViewMode] = useState<'date' | 'category'>('date'); // View mode
-  const [items, setItems] = useState<Item[]>([]); // All items
-  const [activities, setActivities] = useState<Activity[]>([]); // Activities list
+  const [items, setItems] = useState<Item[]>(initialItems || []); // All items
+  const [activities, setActivities] = useState<Activity[]>(initialActivities || []); // Activities list
   const [dates, setDates] = useState<string[]>([]); // Dates list
   const [newItem, setNewItem] = useState<Omit<Item, 'id'>>({
     name: '',
@@ -64,6 +68,168 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
     type: 'unassigned' | 'date' | 'activity';
     id?: string;
   } | null>(null);
+
+  // Save plan function
+  const handleSavePlan = () => {
+    if (!userId) {
+      alert('Please login to save your plan');
+      return;
+    }
+
+    if (!tripInfo) {
+      alert('Please create trip information first');
+      return;
+    }
+
+    const plan = {
+      id: planId || Date.now().toString(),
+      tripName: tripInfo.tripName,
+      destination: tripInfo.destination,
+      startDate: tripInfo.startDate,
+      endDate: tripInfo.endDate,
+      items,
+      activities,
+      createdAt: planId ? new Date().toISOString() : new Date().toISOString()
+    };
+
+    try {
+      // Get existing plans from localStorage
+      const savedPlans = localStorage.getItem(`plans_${userId}`);
+      const plans = savedPlans ? JSON.parse(savedPlans) : [];
+      
+      if (planId) {
+        // Update existing plan
+        const updatedPlans = plans.map((p: any) => p.id === planId ? plan : p);
+        localStorage.setItem(`plans_${userId}`, JSON.stringify(updatedPlans));
+      } else {
+        // Add new plan
+        plans.push(plan);
+        localStorage.setItem(`plans_${userId}`, JSON.stringify(plans));
+      }
+      
+      alert('Plan saved successfully!');
+      onSaveSuccess?.(); // Call the callback after successful save
+    } catch (error) {
+      console.error('Error saving plan:', error);
+      alert('Failed to save plan. Please try again.');
+    }
+  };
+
+  // Print function
+  const handlePrint = (viewType: 'date' | 'category') => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const content = document.createElement('div');
+    content.innerHTML = `
+      <html>
+        <head>
+          <title>Packing List - ${tripInfo?.tripName || 'Trip'}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h1, h2 { color: #1a365d; }
+            .section { margin-bottom: 20px; }
+            .item { margin: 5px 0; }
+          </style>
+        </head>
+        <body>
+          <h1>Packing List - ${tripInfo?.tripName || 'Trip'}</h1>
+          ${tripInfo ? `
+            <div class="section">
+              <h2>Trip Information</h2>
+              <p><strong>Destination:</strong> ${tripInfo.destination.label}</p>
+              <p><strong>Dates:</strong> ${tripInfo.startDate} to ${tripInfo.endDate}</p>
+            </div>
+          ` : ''}
+          ${viewType === 'date' ? renderDateViewForPrint() : renderCategoryViewForPrint()}
+        </body>
+      </html>
+    `;
+
+    printWindow.document.body.appendChild(content);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 500);
+  };
+
+  // Render date view for print
+  const renderDateViewForPrint = () => {
+    let html = '<div class="section">';
+    
+    // Unassigned items
+    const unassignedItems = getUnassignedItems();
+    html += `
+      <h2>Unassigned Items</h2>
+      ${unassignedItems.length > 0 ? 
+        unassignedItems.map(item => `
+          <div class="item">• ${item.name} (${item.quantity}) - ${item.category}</div>
+        `).join('') : 
+        '<p>No unassigned items</p>'
+      }
+    `;
+
+    // Items by date
+    dates.forEach(date => {
+      const { dateActivities, dateItemsNoActivity } = getItemsAndActivitiesByDate(date);
+      html += `
+        <h2>Date: ${date}</h2>
+      `;
+
+      // Activities
+      if (dateActivities.length > 0) {
+        dateActivities.forEach(activity => {
+          const activityItems = items.filter(item => item.activityId === activity.id);
+          html += `
+            <div class="section">
+              <h3>Activity: ${activity.name}${activity.startTime ? ` (${activity.startTime}${activity.endTime ? ` - ${activity.endTime}` : ''})` : ''}</h3>
+              ${activityItems.length > 0 ? 
+                activityItems.map(item => `
+                  <div class="item">• ${item.name} (${item.quantity}) - ${item.category}</div>
+                `).join('') : 
+                '<p>No items for this activity</p>'
+              }
+            </div>
+          `;
+        });
+      }
+
+      // Items without activities
+      if (dateItemsNoActivity.length > 0) {
+        html += `
+          <div class="section">
+            <h3>Other Items</h3>
+            ${dateItemsNoActivity.map(item => `
+              <div class="item">• ${item.name} (${item.quantity}) - ${item.category}</div>
+            `).join('')}
+          </div>
+        `;
+      }
+    });
+
+    html += '</div>';
+    return html;
+  };
+
+  // Render category view for print
+  const renderCategoryViewForPrint = () => {
+    const itemsByCategory = getItemsByCategory();
+    let html = '<div class="section">';
+    
+    Object.entries(itemsByCategory).forEach(([category, categoryItems]) => {
+      html += `
+        <h2>Category: ${category || 'Uncategorized'}</h2>
+        ${categoryItems.map(item => `
+          <div class="item">• ${item.name} (${item.quantity})${item.date ? ` - Date: ${item.date}` : ''}${item.activityId ? ` - Activity: ${activities.find(a => a.id === item.activityId)?.name}` : ''}</div>
+        `).join('')}
+      `;
+    });
+
+    html += '</div>';
+    return html;
+  };
 
   // Add new item
   const handleAddItem = (type: 'unassigned' | 'date' | 'activity', id?: string) => {
@@ -798,23 +964,32 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
         
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Packing List</h2>
-          {viewMode === 'date' ? (
+          <div className="flex space-x-2">
             <button
-              onClick={() => saveToPDF('date')}
-              className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-800"
+              onClick={handleSavePlan}
+              className="flex items-center px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-800"
             >
               <Save size={18} className="mr-2" />
-              Save Date View
+              Save Plan
             </button>
-          ) : (
-            <button
-              onClick={() => saveToPDF('category')}
-              className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-800"
-            >
-              <Save size={18} className="mr-2" />
-              Save List View
-            </button>
-          )}
+            {viewMode === 'date' ? (
+              <button
+                onClick={() => handlePrint('date')}
+                className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-800"
+              >
+                <Save size={18} className="mr-2" />
+                Print Date View
+              </button>
+            ) : (
+              <button
+                onClick={() => handlePrint('category')}
+                className="flex items-center px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-800"
+              >
+                <Save size={18} className="mr-2" />
+                Print Category View
+              </button>
+            )}
+          </div>
         </div>
         
         {viewMode === 'date' ? renderDateView() : renderCategoryView()}
