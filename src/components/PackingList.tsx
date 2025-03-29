@@ -126,14 +126,18 @@ function PackingList({ onBack, userId, tripInfo }: PackingListProps) {
 
   // Delete item
   const handleDeleteItem = (id: string) => {
-    setItems(items.filter(item => item.id !== id));
+    if (window.confirm('Are you sure you want to delete this item?')) {
+      setItems(items.filter(item => item.id !== id));
+    }
   };
 
-  // Delete activity
+  // Delete activitys
   const handleDeleteActivity = (id: string) => {
-    setActivities(activities.filter(activity => activity.id !== id));
-    // Set items in this activity to unassigned
-    setItems(items.map(item => item.activityId === id ? { ...item, activityId: undefined } : item));
+    if (window.confirm('Are you sure you want to delete this event? This will make all items under this event unassigned')) {
+      setActivities(activities.filter(activity => activity.id !== id));
+      // Set items in this activity to unassigned
+      setItems(items.map(item => item.activityId === id ? { ...item, activityId: undefined } : item));
+    }
   };
 
   // Group items by category
