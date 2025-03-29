@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, History } from 'lucide-react';
-import { updateUser, getTravelPlans } from '../lib/api';
-import HistoricalPlans from './HistoricalPlans';
+import React, { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import { updateUser } from '../lib/api';
 
 interface ProfileProps {
   user: any;
@@ -21,23 +20,6 @@ function Profile({ user, onLogout, onBack }: ProfileProps) {
 
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [showHistoricalPlans, setShowHistoricalPlans] = useState(false);
-  const [historicalPlans, setHistoricalPlans] = useState([]);
-
-  useEffect(() => {
-    if (showHistoricalPlans) {
-      loadHistoricalPlans();
-    }
-  }, [showHistoricalPlans]);
-
-  const loadHistoricalPlans = async () => {
-    try {
-      const plans = await getTravelPlans(user.id);
-      setHistoricalPlans(plans);
-    } catch (err) {
-      console.error('Failed to load historical plans:', err);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +28,7 @@ function Profile({ user, onLogout, onBack }: ProfileProps) {
 
     try {
       const updatedUser = await updateUser(
-          user.uid,  // 从 user 对象中获取 uid
+          user.uid,
           formData.email || undefined,
           formData.gender || undefined,
           formData.fullname || undefined,
@@ -63,15 +45,6 @@ function Profile({ user, onLogout, onBack }: ProfileProps) {
     }
   };
 
-  if (showHistoricalPlans) {
-    return (
-        <HistoricalPlans
-            plans={historicalPlans}
-            onBack={() => setShowHistoricalPlans(false)}
-        />
-    );
-  }
-
   return (
       <div className="max-w-md mx-auto">
         <div className="bg-white p-8 rounded-lg shadow-md">
@@ -83,16 +56,19 @@ function Profile({ user, onLogout, onBack }: ProfileProps) {
             Back to Main Menu
           </button>
           
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Profile</h2>
+          </div>
           <h2 className="text-2xl font-bold mb-6 text-center">Profile Settings</h2>
           {error && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
-                {error}
-              </div>
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+              {error}
+            </div>
           )}
           {success && (
-              <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                {success}
-              </div>
+            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+              {success}
+            </div>
           )}
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -160,14 +136,6 @@ function Profile({ user, onLogout, onBack }: ProfileProps) {
                   className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
                 Save Changes
-              </button>
-              <button
-                  type="button"
-                  onClick={() => setShowHistoricalPlans(true)}
-                  className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 flex items-center justify-center"
-              >
-                <History className="mr-2" size={20} />
-                View Historical Plans
               </button>
               <button
                   type="button"
